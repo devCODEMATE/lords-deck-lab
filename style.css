@@ -17,55 +17,53 @@ body {
   min-height: 100vh;
 }
 
-/* 
-   HEADER & NAV
- */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 32px;
-  background: #0a1520;
-  border-bottom: 2px solid #FFD600;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
+@media (max-width: 768px) {
 
-.logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: #FFD600;
-  letter-spacing: 1px;
-}
+  /* HEADER */
+  .header {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    overflow: hidden;        /* ← fix logo cut */
+  }
 
-.nav {
-  display: flex;
-  gap: 8px;
-}
+  .logo {
+    font-size: 16px;
+    text-align: center;
+    width: 100%;             /* ← logo full width */
+    white-space: nowrap;     /* ← no line break */
+  }
 
-.nav-btn {
-  background: transparent;
-  border: 1px solid #1E3A50;
-  color: #7A9BB5;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+  }
 
-.nav-btn:hover {
-  border-color: #FFD600;
-  color: #FFD600;
-}
+  .nav-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    flex: 1;
+    min-width: 70px;
+    max-width: 120px;
+    text-align: center;
+  }
 
-.nav-btn.active {
-  background: #FFD600;
-  color: #0D1B2A;
-  border-color: #FFD600;
-  font-weight: 700;
+  /* SEARCH BAR — force column */
+  .search-bar {
+    flex-direction: column !important;
+    gap: 8px;
+  }
+
+  .search-bar input,
+  .search-bar select,
+  .search-bar button {
+    width: 100% !important;
+    font-size: 16px;
+    padding: 12px;
+  }
 }
 
 /* 
