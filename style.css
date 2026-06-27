@@ -445,16 +445,17 @@ body {
   }
 
 .nav-btn {
-  padding: 10px 12px;
-  font-size: 11px;
-  flex: 1;
-  min-width: 70px;
-  max-width: 120px;
-  text-align: center;
-  background: #162233;        /* ← dark background */
-  border: 1px solid #1E3A50;  /* ← subtle border */
+  background: #162233;  /* ← AGREGA ESTA LÍNEA */
+  border: 1px solid #1E3A50;
   color: #7A9BB5;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  -webkit-appearance: none;  /* ← fix iOS default styles */
+  appearance: none;          /* ← fix iOS default styles */
 }
 
 .nav-btn.active {
