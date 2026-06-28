@@ -1,12 +1,13 @@
-
+// =====================
 // API KEY
-
+// =====================
 const API_KEY = '9990c70a-8afb-4e89-979a-d6b10faee93f';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // =====================
   // NAVIGATION
-
+  // =====================
   const navButtons = document.querySelectorAll('.nav-btn');
   const sections = document.querySelectorAll('.section');
 
@@ -20,50 +21,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // =====================
+  // MOBILE SWIPE NAVIGATION
+  // =====================
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const sectionOrder = ['search', 'builder', 'simulator', 'damage'];
 
-// MOBILE SWIPE NAVIGATION
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
 
-let touchStartX = 0;
-let touchStartY = 0;
-const sectionOrder = ['search', 'builder', 'simulator', 'damage'];
+  document.addEventListener('touchend', (e) => {
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+    if (document.getElementById('cardModal')) return;
+    const activeSection = document.querySelector('.section.active');
+    if (!activeSection) return;
+    const currentIndex = sectionOrder.indexOf(activeSection.id);
+    let nextIndex = -1;
+    if (deltaX < -60) nextIndex = currentIndex + 1;
+    if (deltaX > 60)  nextIndex = currentIndex - 1;
+    if (nextIndex < 0 || nextIndex >= sectionOrder.length) return;
+    navButtons.forEach(b => b.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+    const targetId = sectionOrder[nextIndex];
+    document.getElementById(targetId).classList.add('active');
+    document.querySelector(`[data-section="${targetId}"]`).classList.add('active');
+  }, { passive: true });
 
-document.addEventListener('touchstart', (e) => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener('touchend', (e) => {
-  const deltaX = e.changedTouches[0].clientX - touchStartX;
-  const deltaY = e.changedTouches[0].clientY - touchStartY;
-
-  // Only horizontal swipes (more X than Y movement)
-  if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY)) return;
-
-  // Don't trigger if modal is open
-  if (document.getElementById('cardModal')) return;
-
-  // Find current active section
-  const activeSection = document.querySelector('.section.active');
-  if (!activeSection) return;
-  const currentIndex = sectionOrder.indexOf(activeSection.id);
-
-  let nextIndex = -1;
-  if (deltaX < -60) nextIndex = currentIndex + 1; // swipe left → next
-  if (deltaX > 60)  nextIndex = currentIndex - 1; // swipe right → prev
-
-  if (nextIndex < 0 || nextIndex >= sectionOrder.length) return;
-
-  // Navigate to next/prev section
-  navButtons.forEach(b => b.classList.remove('active'));
-  sections.forEach(s => s.classList.remove('active'));
-
-  const targetId = sectionOrder[nextIndex];
-  document.getElementById(targetId).classList.add('active');
-  document.querySelector(`[data-section="${targetId}"]`).classList.add('active');
-}, { passive: true });
-
+  // =====================
   // LOGO RESET
-
+  // =====================
   document.querySelector('.logo').addEventListener('click', () => {
     deck = [];
     renderDeck();
@@ -84,9 +75,9 @@ document.addEventListener('touchend', (e) => {
     document.getElementById('search').classList.add('active');
   });
 
- 
+  // =====================
   // SKETCH CARD GENERATOR
-
+  // =====================
   function generateSketchCard(card, W, H) {
     W = W || 130;
     H = H || 182;
@@ -103,19 +94,14 @@ document.addEventListener('touchend', (e) => {
     const rightText = supertype === 'Pokémon' ? 'HP ' + hp : subtype || supertype;
     const subLine = supertype === 'Pokémon' ? (subtype || '') + ' type' : '';
 
-    // scale helper
-    function s(v) { return (v * W / 130).toFixed(1); }
     function sh(v) { return (v * H / 182).toFixed(1); }
 
-    // ── POKEMON SKETCHES ──────────────────────────────────────
     function pokemon_lucario() {
       return `<g transform="translate(${cx},${sh(98)})">
 <path d="M-14,10 Q-18,-4 -12,-18 Q0,-28 12,-18 Q18,-4 14,10 Q8,20 0,22 Q-8,20 -14,10Z" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M-12,-18 Q-14,-32 -6,-40 Q0,-44 6,-40 Q14,-32 12,-18 Q6,-14 0,-12 Q-6,-14 -12,-18Z" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M-10,-36 Q-18,-50 -12,-58 Q-6,-52 -8,-40Z" fill="none" stroke="#111" stroke-width="1.1"/>
 <path d="M10,-36 Q18,-50 12,-58 Q6,-52 8,-40Z" fill="none" stroke="#111" stroke-width="1.1"/>
-<path d="M-9,-40 Q-13,-50 -10,-54 Q-7,-48 -8,-43Z" fill="none" stroke="#333" stroke-width="0.7"/>
-<path d="M9,-40 Q13,-50 10,-54 Q7,-48 8,-43Z" fill="none" stroke="#333" stroke-width="0.7"/>
 <ellipse cx="-5" cy="-26" rx="2.5" ry="3" fill="#111"/>
 <ellipse cx="5" cy="-26" rx="2.5" ry="3" fill="#111"/>
 <path d="M-2,-20 Q0,-17 2,-20" fill="none" stroke="#111" stroke-width="0.9"/>
@@ -123,11 +109,9 @@ document.addEventListener('touchend', (e) => {
 <path d="M-5,-4 Q0,-8 5,-4 Q4,2 0,4 Q-4,2 -5,-4Z" fill="none" stroke="#333" stroke-width="0.8"/>
 <path d="M-14,2 Q-28,-2 -32,10 Q-28,18 -22,14" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M-32,10 Q-38,6 -36,14 Q-34,20 -28,18 Q-22,16 -22,14Z" fill="none" stroke="#111" stroke-width="1.1"/>
-<line x1="-36" y1="10" x2="-34" y2="18" stroke="#333" stroke-width="0.7"/>
-<line x1="-33" y1="8" x2="-30" y2="18" stroke="#333" stroke-width="0.7"/>
+<circle cx="-30" cy="13" r="5" fill="none" stroke="#333" stroke-width="0.8" stroke-dasharray="2,1"/>
 <path d="M14,2 Q28,-8 34,-2 Q36,6 30,10" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M34,-2 Q42,-6 40,4 Q38,12 32,10 Q28,8 30,6Z" fill="none" stroke="#111" stroke-width="1.1"/>
-<circle cx="-30" cy="13" r="5" fill="none" stroke="#333" stroke-width="0.8" stroke-dasharray="2,1"/>
 <circle cx="36" cy="2" r="5" fill="none" stroke="#333" stroke-width="0.8" stroke-dasharray="2,1"/>
 <ellipse cx="0" cy="18" rx="13" ry="16" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M-8,22 Q-10,36 -12,48 Q-8,52 -4,50" fill="none" stroke="#111" stroke-width="1.2"/>
@@ -135,8 +119,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M-12,48 Q-18,52 -14,58 Q-8,60 -4,56 Q-2,52 -4,50Z" fill="none" stroke="#111" stroke-width="1"/>
 <path d="M12,48 Q18,52 14,58 Q8,60 4,56 Q2,52 4,50Z" fill="none" stroke="#111" stroke-width="1"/>
 <path d="M0,22 Q-16,32 -18,46 Q-14,52 -10,46" fill="none" stroke="#111" stroke-width="1.1"/>
-<path d="M-40,0 Q-44,-4 -42,-10" fill="none" stroke="#333" stroke-width="0.7"/>
-<path d="M44,0 Q48,-4 46,-10" fill="none" stroke="#333" stroke-width="0.7"/>
 <text x="0" y="66" font-family="Caveat,cursive" font-size="9" fill="#777" text-anchor="middle">(Lucario)</text>
 </g>`;
     }
@@ -144,7 +126,6 @@ document.addEventListener('touchend', (e) => {
     function pokemon_chienpao() {
       return `<g transform="translate(${cx},${sh(100)})">
 <path d="M-22,8 Q-26,-10 -18,-24 Q-8,-34 0,-36 Q8,-34 18,-24 Q26,-10 22,8 Q14,22 0,26 Q-14,22 -22,8Z" fill="none" stroke="#111" stroke-width="1.3"/>
-<path d="M-10,-34 Q-12,-44 -8,-52 Q0,-58 8,-52 Q12,-44 10,-34" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M-14,-44 Q-18,-58 -10,-66 Q0,-72 10,-66 Q18,-58 14,-44 Q8,-38 0,-36 Q-8,-38 -14,-44Z" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M-12,-62 Q-18,-74 -8,-78 Q-4,-70 -8,-64Z" fill="none" stroke="#111" stroke-width="1"/>
 <path d="M12,-62 Q18,-74 8,-78 Q4,-70 8,-64Z" fill="none" stroke="#111" stroke-width="1"/>
@@ -162,9 +143,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M-20,40 Q-26,44 -22,50 Q-16,52 -12,48 Q-10,44 -12,40Z" fill="none" stroke="#111" stroke-width="1"/>
 <path d="M18,8 Q22,24 20,40" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M20,40 Q26,44 22,50 Q16,52 12,48 Q10,44 12,40Z" fill="none" stroke="#111" stroke-width="1"/>
-<circle cx="-32" cy="-20" r="2" fill="none" stroke="#444" stroke-width="0.7"/>
-<circle cx="34" cy="-24" r="2" fill="none" stroke="#444" stroke-width="0.7"/>
-<path d="M-40,-10 L-36,-6 M-40,-6 L-36,-10" stroke="#444" stroke-width="0.7"/>
 <text x="0" y="62" font-family="Caveat,cursive" font-size="9" fill="#777" text-anchor="middle">(Chien-Pao)</text>
 </g>`;
     }
@@ -181,8 +159,6 @@ document.addEventListener('touchend', (e) => {
 <circle cx="5" cy="-19" r="1" fill="#fff"/>
 <ellipse cx="0" cy="-13" rx="2" ry="1.5" fill="#111"/>
 <path d="M-3,-11 Q0,-8 3,-11" fill="none" stroke="#111" stroke-width="0.9"/>
-<path d="M-8,-14 Q-12,-12 -10,-8" fill="none" stroke="#333" stroke-width="0.7"/>
-<path d="M8,-14 Q12,-12 10,-8" fill="none" stroke="#333" stroke-width="0.7"/>
 <path d="M-12,4 Q-22,0 -24,10 Q-20,18 -16,14" fill="none" stroke="#111" stroke-width="1.1"/>
 <path d="M12,4 Q22,0 24,10 Q20,18 16,14" fill="none" stroke="#111" stroke-width="1.1"/>
 <ellipse cx="-22" cy="12" rx="5" ry="4" fill="none" stroke="#111" stroke-width="1"/>
@@ -191,7 +167,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M6,24 Q8,36 6,44" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M-6,44 Q-12,46 -10,52 Q-4,54 0,50 Q2,46 0,44Z" fill="none" stroke="#111" stroke-width="1"/>
 <path d="M6,44 Q12,46 10,52 Q4,54 0,50 Q-2,46 0,44Z" fill="none" stroke="#111" stroke-width="1"/>
-<path d="M0,24 Q-10,30 -12,42 Q-8,46 -6,42" fill="none" stroke="#111" stroke-width="1"/>
 <text x="0" y="58" font-family="Caveat,cursive" font-size="9" fill="#777" text-anchor="middle">(Riolu)</text>
 </g>`;
     }
@@ -230,8 +205,6 @@ document.addEventListener('touchend', (e) => {
 <circle cx="0" cy="10" r="3" fill="#333"/>
 <line x1="26" y1="-14" x2="14" y2="4" stroke="#111" stroke-width="1.4"/>
 <ellipse cx="12" cy="6" rx="6" ry="5" fill="none" stroke="#111" stroke-width="1.2"/>
-<path d="M-4,4 Q-8,2 -10,-2" fill="none" stroke="#333" stroke-width="0.8"/>
-<path d="M-6,14 Q-10,14 -12,10" fill="none" stroke="#333" stroke-width="0.8"/>
 </g>`;
     }
 
@@ -249,8 +222,6 @@ document.addEventListener('touchend', (e) => {
 <line x1="50" y1="-6" x2="50" y2="2" stroke="#333" stroke-width="0.8"/>
 <line x1="44" y1="-6" x2="44" y2="2" stroke="#333" stroke-width="0.8"/>
 <line x1="38" y1="-6" x2="38" y2="2" stroke="#333" stroke-width="0.8"/>
-<rect x="-60" y="-6" width="12" height="12" rx="2" fill="none" stroke="#333" stroke-width="0.9"/>
-<rect x="48" y="-6" width="12" height="12" rx="2" fill="none" stroke="#333" stroke-width="0.9"/>
 </g>`;
     }
 
@@ -260,18 +231,14 @@ document.addEventListener('touchend', (e) => {
 <rect x="-34" y="4" width="68" height="10" rx="3" fill="none" stroke="#111" stroke-width="1.3"/>
 <ellipse cx="-12" cy="28" rx="16" ry="12" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M-24,24 Q-18,10 -12,8 Q-6,10 0,24" fill="none" stroke="#111" stroke-width="1.1"/>
-<path d="M-18,22 Q-12,14 -6,22" fill="none" stroke="#333" stroke-width="0.8"/>
 <path d="M-16,12 Q-12,6 -8,12 Q-6,8 -4,12" fill="none" stroke="#333" stroke-width="0.9"/>
 <ellipse cx="14" cy="28" rx="14" ry="11" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M0,24 Q6,12 14,10 Q22,12 28,24" fill="none" stroke="#111" stroke-width="1.1"/>
-<path d="M4,22 Q14,14 24,22" fill="none" stroke="#333" stroke-width="0.8"/>
 <circle cx="-14" cy="26" r="1.5" fill="#333"/>
 <circle cx="-8" cy="30" r="1.5" fill="#333"/>
-<circle cx="-18" cy="32" r="1.5" fill="#333"/>
 <circle cx="12" cy="26" r="1.5" fill="#333"/>
 <circle cx="18" cy="30" r="1.5" fill="#333"/>
 <line x1="0" y1="4" x2="0" y2="44" stroke="#333" stroke-width="1"/>
-<line x1="-34" y1="14" x2="34" y2="14" stroke="#333" stroke-width="0.7"/>
 <path d="M-6,4 Q0,-4 6,4 Q2,8 0,6 Q-2,8 -6,4Z" fill="none" stroke="#333" stroke-width="0.9"/>
 </g>`;
     }
@@ -301,7 +268,6 @@ document.addEventListener('touchend', (e) => {
 <rect x="-46" y="-4" width="14" height="18" rx="2" fill="none" stroke="#111" stroke-width="1.1"/>
 <line x1="-39" y1="-4" x2="-39" y2="14" stroke="#333" stroke-width="0.7"/>
 <line x1="-44" y1="2" x2="-34" y2="2" stroke="#333" stroke-width="0.6"/>
-<line x1="-44" y1="6" x2="-34" y2="6" stroke="#333" stroke-width="0.6"/>
 <path d="M16,-4 Q30,6 26,24" fill="none" stroke="#111" stroke-width="1.2"/>
 <line x1="-8" y1="36" x2="-10" y2="58" stroke="#111" stroke-width="1.2"/>
 <line x1="8" y1="36" x2="10" y2="58" stroke="#111" stroke-width="1.2"/>
@@ -327,8 +293,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M28,-18 Q34,-24 40,-16 Q40,-10 34,-8 Q28,-10 28,-18Z" fill="none" stroke="#111" stroke-width="1"/>
 <ellipse cx="-44" cy="-4" rx="5" ry="4" fill="none" stroke="#333" stroke-width="0.8"/>
 <ellipse cx="44" cy="-6" rx="4" ry="3" fill="none" stroke="#333" stroke-width="0.8"/>
-<path d="M-30,-4 L-30,2 L-32,0 M-30,2 L-28,0" fill="none" stroke="#444" stroke-width="0.8"/>
-<path d="M34,-6 L34,0 L32,-2 M34,0 L36,-2" fill="none" stroke="#444" stroke-width="0.8"/>
 </g>`;
     }
 
@@ -340,9 +304,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M-14,-18 Q-18,-8 -16,4 Q-12,12 -4,14 Q4,14 10,10 Q16,4 14,-4 Q10,-14 4,-18Z" fill="none" stroke="#111" stroke-width="1.5"/>
 <path d="M-10,-18 Q-8,-28 -4,-28 Q0,-28 0,-18" fill="none" stroke="#111" stroke-width="1.3"/>
 <path d="M0,-18 Q2,-28 6,-28 Q10,-26 8,-18" fill="none" stroke="#111" stroke-width="1.3"/>
-<path d="M8,-18 Q12,-26 14,-22 Q16,-16 12,-12" fill="none" stroke="#111" stroke-width="1.2"/>
-<line x1="-8" y1="-12" x2="-6" y2="-8" stroke="#333" stroke-width="0.8"/>
-<line x1="0" y1="-12" x2="2" y2="-8" stroke="#333" stroke-width="0.8"/>
 <path d="M-14,-4 Q-22,-6 -22,2 Q-20,8 -14,6" fill="none" stroke="#111" stroke-width="1.2"/>
 <path d="M16,-22 L20,-28 L18,-22 L24,-20 L18,-18 L20,-12 L16,-18 L10,-16Z" fill="none" stroke="#333" stroke-width="0.9"/>
 <text x="0" y="50" font-family="Caveat,cursive" font-size="9" fill="#777" text-anchor="middle">(Fighting)</text>
@@ -358,8 +319,6 @@ document.addEventListener('touchend', (e) => {
 <path d="M-24,-8 L14,22" fill="none" stroke="#333" stroke-width="0.8"/>
 <path d="M24,-8 L-14,22" fill="none" stroke="#333" stroke-width="0.8"/>
 <path d="M-24,-8 L24,-8" fill="none" stroke="#333" stroke-width="0.8"/>
-<path d="M-16,-18 L16,-18 L24,-8" fill="none" stroke="#333" stroke-width="0.7"/>
-<path d="M-16,-18 L-24,-8" fill="none" stroke="#333" stroke-width="0.7"/>
 <path d="M0,-36 L2,-30 L6,-28 L2,-26 L0,-20" fill="none" stroke="#222" stroke-width="1"/>
 <path d="M28,28 L30,22 L32,28 L26,30 L32,32 L30,38 L28,32 L22,30Z" fill="none" stroke="#333" stroke-width="0.8"/>
 <text x="0" y="50" font-family="Caveat,cursive" font-size="9" fill="#777" text-anchor="middle">(Special)</text>
@@ -390,7 +349,6 @@ document.addEventListener('touchend', (e) => {
 </g>`;
     }
 
-    // Pick sketch
     let sketchSVG = '';
     let footLeft = '';
     const footRight = `${setCode} ${number}`;
@@ -438,15 +396,14 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
 </svg>`;
   }
 
-  // Convert sketch to data URI so it works in img src
   function sketchToDataURI(card, w, h) {
     const svg = generateSketchCard(card, w, h);
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
 
-
+  // =====================
   // CARD SEARCH
-
+  // =====================
   const searchInput = document.getElementById('searchInput');
   const searchBtn = document.getElementById('searchBtn');
   const cardGrid = document.getElementById('cardGrid');
@@ -455,8 +412,6 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') searchCards();
   });
-
-cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
 
   async function searchCards() {
     const query = searchInput.value.trim();
@@ -475,8 +430,9 @@ cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
         cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">No cards found. Try another name.</p>';
         return;
       }
+      // ✅ FIX: filter by regulation mark H/I/J for 2026 Standard format
       if (format === 'standard') {
-        cards = cards.filter(card => standardSets.includes(card.set?.ptcgoCode));
+        cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
         if (cards.length === 0) {
           cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">No Standard legal cards found. Try "All Sets".</p>';
           return;
@@ -488,69 +444,54 @@ cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
     }
   }
 
-function renderCards(cards) {
-  cardGrid.innerHTML = '';
-  cards.forEach(card => {
-    const image = card.images?.small || '';
-    const hp = card.hp ? `HP: ${card.hp}` : card.supertype;
-    const cardEl = document.createElement('div');
-    cardEl.className = 'card-item';
-    cardEl.innerHTML = `
-      <img src="${image}" alt="${card.name}" loading="lazy" title="Click to zoom">
-      <div class="card-name">${card.name}</div>
-      <div class="card-hp">${hp}</div>
-      <button class="add-btn">+ Add to Deck</button>
+  function renderCards(cards) {
+    cardGrid.innerHTML = '';
+    cards.forEach(card => {
+      const image = card.images?.small || '';
+      const hp = card.hp ? `HP: ${card.hp}` : card.supertype;
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card-item';
+      cardEl.innerHTML = `
+        <img src="${image}" alt="${card.name}" loading="lazy" title="Click to zoom">
+        <div class="card-name">${card.name}</div>
+        <div class="card-hp">${hp}</div>
+        <button class="add-btn">+ Add to Deck</button>
+      `;
+      cardEl.querySelector('img').addEventListener('click', () => openCardModal(card));
+      cardEl.querySelector('.add-btn').addEventListener('click', () => addToDeck(card));
+      cardGrid.appendChild(cardEl);
+    });
+  }
+
+  function openCardModal(card) {
+    const existing = document.getElementById('cardModal');
+    if (existing) existing.remove();
+    const largeImg = card.images?.large || card.images?.small || '';
+    const overlay = document.createElement('div');
+    overlay.className = 'card-modal-overlay';
+    overlay.id = 'cardModal';
+    overlay.innerHTML = `
+      <span class="card-modal-close">✕</span>
+      <img src="${largeImg}" class="card-modal-img" alt="${card.name}">
     `;
-
-    // ✅ Click en imagen → modal zoom
-    cardEl.querySelector('img').addEventListener('click', () => {
-      openCardModal(card);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target.classList.contains('card-modal-close')) {
+        overlay.remove();
+      }
     });
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+    document.body.appendChild(overlay);
+  }
 
-    cardEl.querySelector('.add-btn').addEventListener('click', () => {
-      addToDeck(card);
-    });
-
-    cardGrid.appendChild(cardEl);
-  });
-}
-
-function openCardModal(card) {
-  // Remove existing modal if any
-  const existing = document.getElementById('cardModal');
-  if (existing) existing.remove();
-
-  const largeImg = card.images?.large || card.images?.small || '';
-  const overlay = document.createElement('div');
-  overlay.className = 'card-modal-overlay';
-  overlay.id = 'cardModal';
-  overlay.innerHTML = `
-    <span class="card-modal-close">✕</span>
-    <img src="${largeImg}" class="card-modal-img" alt="${card.name}">
-  `;
-
-  // Close on overlay click
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay || e.target.classList.contains('card-modal-close')) {
-      overlay.remove();
-    }
-  });
-
-  // Close on ESC key
-  const escHandler = (e) => {
-    if (e.key === 'Escape') {
-      overlay.remove();
-      document.removeEventListener('keydown', escHandler);
-    }
-  };
-  document.addEventListener('keydown', escHandler);
-
-  document.body.appendChild(overlay);
-}
-
-
+  // =====================
   // DECK BUILDER
-
+  // =====================
   let deck = [];
 
   function addToDeck(card) {
@@ -603,24 +544,19 @@ function openCardModal(card) {
     }
     const order = ['Pokémon', 'Trainer', 'Energy'];
     const sorted = [...deck].sort((a, b) => order.indexOf(a.supertype) - order.indexOf(b.supertype));
-
     deckList.innerHTML = '';
     sorted.forEach(card => {
       const row = document.createElement('div');
       row.className = 'deck-card-row';
-
-      // Thumbnail — real image or sketch as data URI
       const imgEl = document.createElement('img');
       imgEl.style.cssText = 'width:40px;height:56px;border-radius:4px;flex-shrink:0;object-fit:cover;';
       imgEl.alt = card.name;
-
       if (card.images?.small) {
         imgEl.src = card.images.small;
         imgEl.onerror = () => { imgEl.src = sketchToDataURI(card, 40, 56); };
       } else {
         imgEl.src = sketchToDataURI(card, 40, 56);
       }
-
       row.appendChild(imgEl);
       row.innerHTML += `
         <div class="deck-card-name">${card.name}</div>
@@ -646,12 +582,12 @@ function openCardModal(card) {
     document.getElementById('trainerCount').textContent = trainers;
     document.getElementById('energyCount').textContent = energy;
     const countEl = document.getElementById('cardCount');
-    countEl.style.color = total === 60 ? '#00C9A7' : total > 60 ? '#E63946' : '#FFD600';
+    countEl.style.color = total === 60 ? '#6b9e93' : total > 60 ? '#E63946' : '#ffd166';
   }
 
-
+  // =====================
   // DECK IMPORT
-
+  // =====================
   const importBtn = document.getElementById('importBtn');
   const clearDeckBtn = document.getElementById('clearDeckBtn');
 
@@ -674,10 +610,8 @@ function openCardModal(card) {
   function guessSubtype(name, supertype) {
     if (supertype !== 'Trainer') return '';
     const n = name.toLowerCase();
-    const supporters = ['professor','boss','hilda','lillie','arven','iono','petrel'];
-    const stadiums = ['mountain','city','gym','forest','tower','arena','park'];
-    if (supporters.some(w => n.includes(w))) return 'Supporter';
-    if (stadiums.some(w => n.includes(w))) return 'Stadium';
+    if (['professor','boss','hilda','lillie','arven','iono','petrel'].some(w => n.includes(w))) return 'Supporter';
+    if (['mountain','city','gym','forest','tower','arena','park'].some(w => n.includes(w))) return 'Stadium';
     return 'Item';
   }
 
@@ -725,7 +659,6 @@ function openCardModal(card) {
       const cardName = cleanCardName(match[2].trim());
       const setCode = match[3];
       const cardNumber = match[4];
-
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -754,7 +687,6 @@ function openCardModal(card) {
         imported += quantity; withSketch += quantity;
       }
     }
-
     renderDeck();
     updateDeckStats();
     importBtn.textContent = '⚡ Import Deck';
@@ -763,9 +695,9 @@ function openCardModal(card) {
     alert(`✅ Import complete!\n\n📦 ${total}/60 cards loaded\n🖼️ ${withImage} with real image\n✏️ ${withSketch} with sketch`);
   }
 
-
+  // =====================
   // HAND SIMULATOR
-
+  // =====================
   const drawBtn = document.getElementById('drawBtn');
   const handDisplay = document.getElementById('handDisplay');
 
@@ -798,9 +730,8 @@ function openCardModal(card) {
       cardEl.className = 'hand-card';
       cardEl.style.animationDelay = `${index * 0.08}s`;
       const isBasic = card.supertype === 'Pokémon' && card.subtypes?.includes('Basic');
-
       const imgEl = document.createElement('img');
-      imgEl.style.cssText = 'width:100%;border-radius:6px;margin-bottom:6px;';
+      imgEl.style.cssText = 'width:100%;border-radius:6px;margin-bottom:6px;cursor:zoom-in;';
       imgEl.alt = card.name;
       if (card.images?.small) {
         imgEl.src = card.images.small;
@@ -808,7 +739,7 @@ function openCardModal(card) {
       } else {
         imgEl.src = sketchToDataURI(card, 110, 154);
       }
-
+      imgEl.addEventListener('click', () => openCardModal(card));
       cardEl.appendChild(imgEl);
       const nameDiv = document.createElement('div');
       nameDiv.className = 'hand-card-name';
@@ -816,7 +747,7 @@ function openCardModal(card) {
       cardEl.appendChild(nameDiv);
       if (isBasic) {
         const badge = document.createElement('div');
-        badge.style.cssText = 'font-size:10px;color:#00C9A7;margin-top:3px';
+        badge.style.cssText = 'font-size:10px;color:#6b9e93;margin-top:3px';
         badge.textContent = '✓ Basic';
         cardEl.appendChild(badge);
       }
@@ -829,17 +760,17 @@ function openCardModal(card) {
     const statsEl = document.createElement('div');
     statsEl.style.cssText = 'width:100%;margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;';
     statsEl.innerHTML = `
-      <div style="background:#162233;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#00C9A7">${basics}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Basic Pokémon</div></div>
-      <div style="background:#162233;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#FFD600">${trainers}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Trainers</div></div>
-      <div style="background:#162233;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#E63946">${energies}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Energies</div></div>
-      <div style="background:#162233;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#F0F4FF">${hasBasic ? '✓ Ready' : '✗ Mulligan'}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Hand Status</div></div>
+      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#6b9e93">${basics}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Basic Pokémon</div></div>
+      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#ffd166">${trainers}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Trainers</div></div>
+      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#E63946">${energies}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Energies</div></div>
+      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#ffd166">${hasBasic ? '✓ Ready' : '✗ Mulligan'}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Hand Status</div></div>
     `;
     handDisplay.appendChild(statsEl);
   }
 
-
+  // =====================
   // DAMAGE CALCULATOR
- 
+  // =====================
   const calcBtn = document.getElementById('calcBtn');
   calcBtn.addEventListener('click', () => calculateDamage());
 
@@ -857,16 +788,16 @@ function openCardModal(card) {
     document.getElementById('damageNumber').textContent = total;
     document.getElementById('damageResult').style.display = 'block';
     const knockoutEl = document.getElementById('knockoutMsg');
-    if (opponentHp > 0 && total >= opponentHp) knockoutEl.innerHTML = '💥 <span style="color:#00C9A7;font-size:18px;font-weight:700">KNOCK OUT!</span>';
+    if (opponentHp > 0 && total >= opponentHp) knockoutEl.innerHTML = '💥 <span style="color:#6b9e93;font-size:18px;font-weight:700">KNOCK OUT!</span>';
     else if (opponentHp > 0) knockoutEl.innerHTML = `<span style="color:#7A9BB5">${opponentHp - total} HP remaining — not a KO</span>`;
     else knockoutEl.innerHTML = '';
     let tags = '';
     if (weaknessVal === 2)   tags += '<span style="background:rgba(230,57,70,0.15);color:#ff6b74;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">×2 Weakness</span>';
     if (weaknessVal === 1.5) tags += '<span style="background:rgba(230,57,70,0.15);color:#ff6b74;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">×1.5 Weakness</span>';
     if (weaknessVal === 30)  tags += '<span style="background:rgba(230,57,70,0.15);color:#ff6b74;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">+30 Weakness</span>';
-    if (resistanceVal > 0)   tags += `<span style="background:rgba(0,201,167,0.15);color:#00C9A7;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">-${resistanceVal} Resistance</span>`;
-    if (coin > 0)            tags += `<span style="background:rgba(255,214,0,0.15);color:#FFD600;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">+${coin} Coin Flip</span>`;
-    if (extra > 0)           tags += `<span style="background:rgba(255,214,0,0.15);color:#FFD600;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">+${extra} Tool/Stadium</span>`;
+    if (resistanceVal > 0)   tags += `<span style="background:rgba(107,158,147,0.15);color:#6b9e93;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">-${resistanceVal} Resistance</span>`;
+    if (coin > 0)            tags += `<span style="background:rgba(255,209,102,0.15);color:#ffd166;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">+${coin} Coin Flip</span>`;
+    if (extra > 0)           tags += `<span style="background:rgba(255,209,102,0.15);color:#ffd166;padding:4px 10px;border-radius:4px;font-size:12px;margin:2px">+${extra} Tool/Stadium</span>`;
     document.getElementById('damageTags').innerHTML = tags;
   }
 
