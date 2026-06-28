@@ -766,3 +766,158 @@ body {
   .damage-number { font-size: 52px; }
 }
 
+/* =====================
+   CODEMATE BRAND PALETTE
+===================== */
+:root {
+  --cm-navy:   #073b4c;
+  --cm-purple: #5a527a;
+  --cm-white:  #ffffff;
+  --cm-yellow: #ffd166;
+  --cm-teal:   #6b9e93;
+  --cm-black:  #000000;
+}
+
+/* Override main colors with CodeMate palette */
+body {
+  background: var(--cm-navy);
+}
+
+.header {
+  background: #051f28;
+  border-bottom: 2px solid var(--cm-yellow);
+}
+
+.logo {
+  color: var(--cm-yellow);
+}
+
+.nav-btn.active {
+  background: var(--cm-yellow);
+  color: var(--cm-navy);
+  border-color: var(--cm-yellow);
+}
+
+.nav-btn:hover {
+  border-color: var(--cm-yellow);
+  color: var(--cm-yellow);
+}
+
+.section h2 {
+  color: var(--cm-yellow);
+}
+
+.search-bar button,
+.calc-btn,
+#importBtn {
+  background: var(--cm-yellow);
+  color: var(--cm-navy);
+}
+
+.search-bar button:hover,
+.calc-btn:hover,
+#importBtn:hover {
+  background: #ffe599;
+}
+
+.add-btn {
+  background: var(--cm-teal);
+  color: var(--cm-white);
+}
+
+.add-btn:hover {
+  background: #7eb5aa;
+}
+
+.deck-stats strong,
+#cardCount {
+  color: var(--cm-yellow);
+}
+
+.damage-number {
+  color: var(--cm-yellow);
+}
+
+.search-bar input:focus,
+.search-bar select:focus,
+.form-group input:focus,
+.form-group select:focus,
+#deckImport:focus {
+  border-color: var(--cm-yellow);
+}
+
+#drawBtn {
+  background: var(--cm-purple);
+  color: var(--cm-white);
+}
+
+#drawBtn:hover {
+  background: #6b608e;
+}
+
+/* =====================
+   CODEMATE FOOTER
+===================== */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  background: #051f28;
+  border-top: 1px solid rgba(255,209,102,0.2);
+  margin-top: 48px;
+}
+
+.footer-avatar-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--cm-yellow);
+  image-rendering: pixelated;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-brand {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cm-yellow);
+  letter-spacing: 1px;
+}
+
+.footer-tagline {
+  font-size: 12px;
+  color: var(--cm-teal);
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.footer-credit {
+  font-size: 11px;
+  color: #7A9BB5;
+}
+
+.footer-credit strong {
+  color: var(--cm-purple);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Mobile footer */
+@media (max-width: 768px) {
+  .footer {
+    padding: 20px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-content {
+    align-items: center;
+  }
+}
