@@ -415,7 +415,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     if (e.key === 'Enter') searchCards();
   });
 
-  const standardSets = ['TEF','TWM','SFA','SCR','SSP','PRE','JTG','DRI','MEG','CRI'];
+cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
 
   async function searchCards() {
     const query = searchInput.value.trim();
