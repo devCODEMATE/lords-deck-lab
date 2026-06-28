@@ -447,23 +447,65 @@ cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
     }
   }
 
-  function renderCards(cards) {
-    cardGrid.innerHTML = '';
-    cards.forEach(card => {
-      const image = card.images?.small || '';
-      const hp = card.hp ? `HP: ${card.hp}` : card.supertype;
-      const cardEl = document.createElement('div');
-      cardEl.className = 'card-item';
-      cardEl.innerHTML = `
-        <img src="${image}" alt="${card.name}" loading="lazy">
-        <div class="card-name">${card.name}</div>
-        <div class="card-hp">${hp}</div>
-        <button class="add-btn">+ Add to Deck</button>
-      `;
-      cardEl.querySelector('.add-btn').addEventListener('click', () => addToDeck(card));
-      cardGrid.appendChild(cardEl);
+function renderCards(cards) {
+  cardGrid.innerHTML = '';
+  cards.forEach(card => {
+    const image = card.images?.small || '';
+    const hp = card.hp ? `HP: ${card.hp}` : card.supertype;
+    const cardEl = document.createElement('div');
+    cardEl.className = 'card-item';
+    cardEl.innerHTML = `
+      <img src="${image}" alt="${card.name}" loading="lazy" title="Click to zoom">
+      <div class="card-name">${card.name}</div>
+      <div class="card-hp">${hp}</div>
+      <button class="add-btn">+ Add to Deck</button>
+    `;
+
+    // ✅ Click en imagen → modal zoom
+    cardEl.querySelector('img').addEventListener('click', () => {
+      openCardModal(card);
     });
-  }
+
+    cardEl.querySelector('.add-btn').addEventListener('click', () => {
+      addToDeck(card);
+    });
+
+    cardGrid.appendChild(cardEl);
+  });
+}
+
+function openCardModal(card) {
+  // Remove existing modal if any
+  const existing = document.getElementById('cardModal');
+  if (existing) existing.remove();
+
+  const largeImg = card.images?.large || card.images?.small || '';
+  const overlay = document.createElement('div');
+  overlay.className = 'card-modal-overlay';
+  overlay.id = 'cardModal';
+  overlay.innerHTML = `
+    <span class="card-modal-close">✕</span>
+    <img src="${largeImg}" class="card-modal-img" alt="${card.name}">
+  `;
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target.classList.contains('card-modal-close')) {
+      overlay.remove();
+    }
+  });
+
+  // Close on ESC key
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  document.body.appendChild(overlay);
+}
 
 
   // DECK BUILDER
