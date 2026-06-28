@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
- 
+
   // DECK BUILDER
 
   let deck = [];
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="deck-card-row">
         ${card.images?.small
           ? `<img src="${card.images.small}" alt="${card.name}">`
-          : `<div style="width:40px;height:56px;background:#0D1B2A;border-radius:4px;border:1px solid #1E3A50;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#7A9BB5;text-align:center;padding:2px">?</div>`
+          : `<div style="width:40px;height:56px;background:#0D1B2A;border-radius:4px;border:1px solid #FFD600;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#FFD600;text-align:center;padding:2px;font-weight:700">NO<br>IMG</div>`
         }
         <div class="deck-card-name">${card.name}</div>
         <div class="deck-card-type">${card.supertype}</div>
@@ -225,15 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('deckImport').value = '';
   });
 
-  // Guess card type from name when API doesn't find it
   function guessType(name) {
     const cleanName = name.toLowerCase();
-
-    // Energy keywords
     const energyWords = ['energy'];
     if (energyWords.some(w => cleanName.includes(w))) return 'Energy';
-
-    // Trainer keywords
     const trainerWords = [
       'professor', 'research', 'ball', 'potion', 'catcher', 'switch',
       'nest', 'ultra', 'boss', 'arven', 'iono', 'hilda', 'lillie',
@@ -242,27 +237,20 @@ document.addEventListener('DOMContentLoaded', () => {
       'special', 'rocket', 'team', 'air', 'buddy', 'maximum', 'orders'
     ];
     if (trainerWords.some(w => cleanName.includes(w))) return 'Trainer';
-
-    // Default to Pokémon
     return 'Pokémon';
   }
 
-  // Clean card name from TCG Live export format
   function cleanCardName(rawName) {
     return rawName
-      .replace(/\{[A-Z]\}/g, '')     // remove energy symbols: {F}, {W}, {R}, {L}, {P}, {C}, {D}, {M}, {G}
-      .replace(/Basic\s+/gi, '')     // remove "Basic " prefix from energy names
-      .replace(/\s+/g, ' ')          // collapse multiple spaces
+      .replace(/\{[A-Z]\}/g, '')
+      .replace(/Basic\s+/gi, '')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
-  // Check if line is a header/footer line to skip
   function isSkipLine(line) {
-    // Skip category headers: "Pokémon: 10", "Trainer: 14", "Energy: 2"
     if (/^(Pokémon|Pokemon|Trainer|Energy|Trainers):\s*\d+$/i.test(line)) return true;
-    // Skip total line: "Total Cards: 60"
     if (/^Total\s+Cards?:\s*\d+$/i.test(line)) return true;
-    // Skip empty lines
     if (line.trim() === '') return true;
     return false;
   }
@@ -277,10 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lines = text.split('\n').map(l => l.trim());
 
-    // Filter: only lines that start with a number AND are not headers
     const cardLines = lines.filter(line => {
       if (isSkipLine(line)) return false;
-      return /^\d+\s+\S/.test(line); // starts with number + space + non-space
+      return /^\d+\s+\S/.test(line);
     });
 
     if (cardLines.length === 0) {
@@ -288,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Show loading
     importBtn.textContent = '⏳ Importing...';
     importBtn.disabled = true;
 
@@ -298,12 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let withoutImage = 0;
 
     for (const line of cardLines) {
-      // Parse format: "4 Dragapult ex TWM 130"
-      // Also handles: "9 Basic {F} Energy GEN 80" and "1 Rocky {F} Energy POR 87"
       const match = line.match(/^(\d+)\s+(.+?)\s+([A-Z]{2,4})\s+(\d+[a-z]?)$/);
 
       if (!match) {
-        // Fallback: simple format without set code "4 Fire Energy"
         const simpleMatch = line.match(/^(\d+)\s+(.+)$/);
         if (simpleMatch) {
           const quantity = parseInt(simpleMatch[1]);
@@ -330,12 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const cardName = cleanCardName(rawName);
 
       try {
-        // Timeout: 5 seconds per card
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+        // ✅ KEY FIX: wildcard search instead of exact name
+        // This finds more cards with images
         const response = await fetch(
-          `https://api.pokemontcg.io/v2/cards?q=name:"${cardName}"&pageSize=10`,
+          `https://api.pokemontcg.io/v2/cards?q=name:${cardName}*&pageSize=10`,
           {
             headers: { 'X-Api-Key': API_KEY },
             signal: controller.signal
@@ -346,7 +330,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
 
         if (data.data && data.data.length > 0) {
-          // Priority: exact set + number match → same set → first result
+          // Best match priority:
+          // 1. Exact set code + card number
+          // 2. Same set code
+          // 3. First result
           const exactMatch = data.data.find(c =>
             c.set?.ptcgoCode === setCode && c.number === cardNumber
           );
@@ -363,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
           withImage += quantity;
 
         } else {
-          // Not found in API — add without image
+          // Not found — add without image
           deck.push({
             id: `manual-${cardName}-${setCode}-${cardNumber}`,
             name: cardName,
@@ -376,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
       } catch (e) {
-        // Timeout or network error — add without image
+        // Timeout or error — add without image
         deck.push({
           id: `manual-${cardName}-${setCode}-${cardNumber}-${Date.now()}`,
           name: cardName,
@@ -395,20 +382,19 @@ document.addEventListener('DOMContentLoaded', () => {
     importBtn.textContent = '⚡ Import Deck';
     importBtn.disabled = false;
 
-    // Success message
     const total = deck.reduce((sum, c) => sum + c.quantity, 0);
     let msg = `✅ Import complete!\n\n`;
     msg += `📦 ${total}/60 cards loaded\n`;
     msg += `🖼️ ${withImage} cards with image\n`;
     if (withoutImage > 0) {
-      msg += `❓ ${withoutImage} cards added without image (not found in API)`;
+      msg += `❓ ${withoutImage} cards added without image`;
     }
     alert(msg);
   }
 
- 
+
   // HAND SIMULATOR
- 
+
   const drawBtn = document.getElementById('drawBtn');
   const handDisplay = document.getElementById('handDisplay');
 
@@ -426,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Build full deck array with duplicates
     let fullDeck = [];
     deck.forEach(card => {
       for (let i = 0; i < card.quantity; i++) fullDeck.push(card);
@@ -445,7 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     handDisplay.innerHTML = '';
 
-    // Mulligan warning
     if (!hasBasic) {
       handDisplay.innerHTML = `
         <div style="width:100%;margin-bottom:16px;padding:12px 16px;background:rgba(230,57,70,0.1);border:1px solid #E63946;border-radius:8px;color:#ff6b74;font-size:13px;">
@@ -454,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // Render each card
     hand.forEach((card, index) => {
       const cardEl = document.createElement('div');
       cardEl.className = 'hand-card';
@@ -472,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
       handDisplay.appendChild(cardEl);
     });
 
-    // Hand stats
     const basics = hand.filter(c => c.supertype === 'Pokémon' && c.subtypes?.includes('Basic')).length;
     const trainers = hand.filter(c => c.supertype === 'Trainer').length;
     const energies = hand.filter(c => c.supertype === 'Energy').length;
@@ -500,9 +482,9 @@ document.addEventListener('DOMContentLoaded', () => {
     handDisplay.appendChild(statsEl);
   }
 
-
+ 
   // DAMAGE CALCULATOR
-
+ 
   const calcBtn = document.getElementById('calcBtn');
   calcBtn.addEventListener('click', () => calculateDamage());
 
