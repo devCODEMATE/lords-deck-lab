@@ -21,6 +21,47 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
+// MOBILE SWIPE NAVIGATION
+
+let touchStartX = 0;
+let touchStartY = 0;
+const sectionOrder = ['search', 'builder', 'simulator', 'damage'];
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const deltaX = e.changedTouches[0].clientX - touchStartX;
+  const deltaY = e.changedTouches[0].clientY - touchStartY;
+
+  // Only horizontal swipes (more X than Y movement)
+  if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+  // Don't trigger if modal is open
+  if (document.getElementById('cardModal')) return;
+
+  // Find current active section
+  const activeSection = document.querySelector('.section.active');
+  if (!activeSection) return;
+  const currentIndex = sectionOrder.indexOf(activeSection.id);
+
+  let nextIndex = -1;
+  if (deltaX < -60) nextIndex = currentIndex + 1; // swipe left → next
+  if (deltaX > 60)  nextIndex = currentIndex - 1; // swipe right → prev
+
+  if (nextIndex < 0 || nextIndex >= sectionOrder.length) return;
+
+  // Navigate to next/prev section
+  navButtons.forEach(b => b.classList.remove('active'));
+  sections.forEach(s => s.classList.remove('active'));
+
+  const targetId = sectionOrder[nextIndex];
+  document.getElementById(targetId).classList.add('active');
+  document.querySelector(`[data-section="${targetId}"]`).classList.add('active');
+}, { passive: true });
+
   // LOGO RESET
 
   document.querySelector('.logo').addEventListener('click', () => {
