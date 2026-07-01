@@ -444,6 +444,36 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
   }
 
   // =====================
+  // TCGdex FALLBACK (third tier, for cards pokemontcg.io hasn't indexed yet —
+  // typically very recent promos)
+  // =====================
+  async function fetchFromTCGdex(cardName) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(
+        `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(cardName)}`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) return null;
+      const match = data.find(c => c.name.toLowerCase() === cardName.toLowerCase()) || data[0];
+      const st = guessType(match.name);
+      return {
+        id: `tcgdex-${match.id}`,
+        name: match.name,
+        supertype: st,
+        subtypes: [guessSubtype(match.name, st)],
+        images: { small: `${match.image}/low.webp`, large: `${match.image}/high.webp` },
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // =====================
   // CARD SEARCH
   // =====================
   const searchInput = document.getElementById('searchInput');
@@ -731,6 +761,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
 
       // Fallback: live API — only reached for cards not in the Standard catalog
       // (e.g. Basic Energy without a regulation mark, or Expanded-only cards)
+      let foundLive = false;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -748,15 +779,23 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
           if (existing) existing.quantity += quantity;
           else deck.push({ ...best, quantity });
           imported += quantity; withImage += quantity;
+          foundLive = true;
+        }
+      } catch (e) { /* falls through to TCGdex below */ }
+
+      if (!foundLive) {
+        // Third tier: pokemontcg.io didn't have it — try TCGdex before giving up
+        const tcgdexMatch = await fetchFromTCGdex(cardName);
+        if (tcgdexMatch) {
+          const existing = deck.find(c => c.id === tcgdexMatch.id);
+          if (existing) existing.quantity += quantity;
+          else deck.push({ ...tcgdexMatch, quantity });
+          imported += quantity; withImage += quantity;
         } else {
           const st = guessType(cardName);
-          deck.push({ id: `sketch-${cardName}-${setCode}-${cardNumber}`, name: cardName, supertype: st, subtypes: [guessSubtype(cardName, st)], set: { ptcgoCode: setCode }, number: cardNumber, quantity, images: { small: '' } });
+          deck.push({ id: `sketch-${cardName}-${setCode}-${cardNumber}-${Date.now()}`, name: cardName, supertype: st, subtypes: [guessSubtype(cardName, st)], set: { ptcgoCode: setCode }, number: cardNumber, quantity, images: { small: '' } });
           imported += quantity; withSketch += quantity;
         }
-      } catch (e) {
-        const st = guessType(cardName);
-        deck.push({ id: `sketch-${cardName}-${setCode}-${cardNumber}-${Date.now()}`, name: cardName, supertype: st, subtypes: [guessSubtype(cardName, st)], set: { ptcgoCode: setCode }, number: cardNumber, quantity, images: { small: '' } });
-        imported += quantity; withSketch += quantity;
       }
     }
     renderDeck();
