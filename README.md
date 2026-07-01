@@ -1,8 +1,8 @@
-# ⚡ Lords Deck Lab
+# >_ CodeMate Deck Lab
 
 > A Pokémon TCG toolkit built with pure HTML, CSS and vanilla JavaScript — no frameworks, no libraries.
 
-![Lords Deck Lab](https://img.shields.io/badge/Pokémon-TCG-FFD600?style=for-the-badge&logo=pokemon&logoColor=0D1B2A)
+![CodeMate Deck Lab](https://img.shields.io/badge/Pokémon-TCG-FFD600?style=for-the-badge&logo=pokemon&logoColor=0D1B2A)
 ![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-FFD600?style=for-the-badge&logo=javascript&logoColor=0D1B2A)
@@ -11,15 +11,15 @@
 
 ## 🎴 Live Demo
 
-👉 **[lords-deck-lab.github.io](https://devCODEMATE.github.io/lords-deck-lab/)**
+👉 **[devCODEMATE.github.io/codemate-deck-lab](https://devCODEMATE.github.io/codemate-deck-lab/)**
 
 ---
 
 ## 📖 About the Project
 
-Lords Deck Lab is a competitive Pokémon TCG toolkit built for the **Lords TCG** community. It helps players search for cards, build decks, simulate opening hands and calculate damage — all in one place, without needing to open multiple tabs or apps.
+CodeMate Deck Lab is a competitive Pokémon TCG toolkit built for the **Lords TCG** community. It helps players search for cards, build decks, simulate opening hands and calculate damage — all in one place, without needing to open multiple tabs or apps.
 
-This project was built as part of a front-end development competition, with the goal of creating something genuinely useful for a real community using only fundamental web technologies.
+This project was built as part of a front-end development competition, with the goal of creating something genuinely useful for a real community using only fundamental web technologies. It is a fan-made, non-commercial project made for learning and for the love of the Pokémon TCG community.
 
 ---
 
@@ -120,7 +120,7 @@ No installation needed. This is a pure static site.
 
 ```bash
 # Clone the repository
-git clone https://github.com/devCODEMATE/lords-deck-lab.git
+git clone https://github.com/devCODEMATE/codemate-deck-lab.git
 
 # Open index.html in your browser
 # Or use VS Code Live Server extension
@@ -140,24 +140,25 @@ To use your own key:
 ## 📁 Project Structure
 
 ```
-lords-deck-lab/
+codemate-deck-lab/
 │
 ├── index.html      # Page structure and sections
 ├── style.css       # All styles and responsive design
-└── app.js          # All JavaScript logic and API calls
+├── app.js          # All JavaScript logic and API calls
+└── images/
+    └── codemate-avatar.png   # CodeMate brand avatar (header + footer)
 ```
 
 ---
 
 ## 🎯 Future Improvements
 
-- [ ] Card price lookup integration
-- [ ] Deck export to TCG Live format
+- [ ] Automated Standard card catalog caching via GitHub Actions (same pattern as [world-cup-2026](https://github.com/devCODEMATE/world-cup-2026))
 - [ ] Draw probability calculator (hypergeometric distribution)
 - [ ] Save decks to localStorage
-- [ ] Pokémon GO CP calculator
-- [ ] Unite tier list with role filter
-- [ ] Tournament bracket generator
+- [ ] Deck export to TCG Live format
+- [ ] Card price lookup integration
+- [ ] Loading state improvements
 
 ---
 
@@ -178,6 +179,6 @@ Follow them on Instagram: [@lords.tcg](https://www.instagram.com/lords.tcg/)
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open source, free to use, and available under the [MIT License](LICENSE).
 
-Card images and data are provided by the [Pokémon TCG API](https://pokemontcg.io/) and are copyright of The Pokémon Company, Nintendo, Game Freak and Creatures.
+CodeMate Deck Lab is a fan-made project, built for learning purposes and out of love for the Pokémon TCG community. It is not affiliated with, endorsed by, or sponsored by The Pokémon Company, Nintendo, Game Freak or Creatures Inc. Card images and data are provided by the [Pokémon TCG API](https://pokemontcg.io/) and remain the property of their respective owners.
