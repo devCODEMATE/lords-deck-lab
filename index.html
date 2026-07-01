@@ -3,16 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lords Deck Lab</title>
-    <link rel="stylesheet" href="style.css?v=5">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"> 
-  </head>
+  <title>CodeMate Deck Lab</title>
+  <link rel="stylesheet" href="style.css?v=6">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
 <body>
 
   <!-- HEADER -->
   <header class="header">
-    <div class="logo"> >_ CodeMate Deck Lab</div>
+    <div class="logo-wrapper">
+      <img src="images/codemate-avatar.jpeg" alt="CodeMate" class="logo-img">
+      <div class="logo"> >_ CodeMate Deck Lab</div>
+    </div>
     <nav class="nav">
       <button class="nav-btn active" data-section="search">Card Search</button>
       <button class="nav-btn" data-section="builder">Deck Builder</button>
@@ -36,7 +39,6 @@
     <button id="searchBtn">Search</button>
   </div>
 
-  <!-- ✅ This DIV missing -->
   <div id="cardGrid" class="card-grid"></div>
 
 </section>
@@ -136,19 +138,18 @@
 </section>
   </main>
 
-  <script src="app.js"></script>
-</body>
-<!-- FOOTER -->
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-avatar">
-<img src="images/codemate-avatar.jpeg" alt="CodeMate" class="footer-avatar-img">    </div>
+      <img src="images/codemate-avatar.jpeg" alt="CodeMate" class="footer-avatar-img">
+    </div>
     <div class="footer-content">
-      <span class="footer-brand">⚡ Lords Deck Lab</span>
+      <span class="footer-brand">&gt;_ CodeMate Deck Lab</span>
       <span class="footer-tagline">Building the future, one line at a time.</span>
       <span class="footer-credit">by <strong>CodeMate</strong></span>
     </div>
   </footer>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

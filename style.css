@@ -47,6 +47,22 @@ body {
   opacity: 0.8;
 }
 
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFD600;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
 .nav {
   display: flex;
   gap: 8px;
@@ -628,6 +644,11 @@ body {
     width: 100%;
   }
 
+  .logo-wrapper {
+    justify-content: center;
+    width: 100%;
+  }
+
   .nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -761,6 +782,7 @@ body {
 ===================== */
 @media (max-width: 380px) {
   .logo { font-size: 20px; letter-spacing: 3px; }
+  .logo-img { width: 24px; height: 24px; }
   .nav-btn { font-size: 11px; padding: 10px 6px; }
   .hand-card { width: 80px; }
   .damage-number { font-size: 52px; }
@@ -790,6 +812,10 @@ body {
 
 .logo {
   color: var(--cm-yellow);
+}
+
+.logo-img {
+  border-color: var(--cm-yellow);
 }
 
 .nav-btn.active {
