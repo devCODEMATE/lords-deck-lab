@@ -16,7 +16,7 @@ const REGULATION_MARKS = ['H', 'I', 'J'];
 const PAGE_SIZE = 250;
 const MAX_RETRIES = 5;
 const OUTPUT_PATH = path.join(__dirname, '..', 'data', 'standard-cards.json');
-const MIN_EXPECTED_CARDS = 2000; // sanity floor based on H+I+J totals seen (~2827)
+const MIN_EXPECTED_CARDS = 2000; // sanity floor based on H+I+J+Energy totals seen (~2827+)
 
 const apiKey = process.env.POKEMONTCG_API_KEY || '';
 
@@ -85,6 +85,7 @@ function normalizeCard(card) {
       id: card.set?.id,
       name: card.set?.name,
       series: card.set?.series,
+      ptcgoCode: card.set?.ptcgoCode,
       releaseDate: card.set?.releaseDate,
     },
     number: card.number,
@@ -108,6 +109,15 @@ async function main() {
     const cards = await fetchRegulationMark(mark);
     allCards.push(...cards);
   }
+
+  // Basic Energy cards often have no regulationMark at all (they're evergreen
+  // across formats), so the H/I/J filter above misses them entirely — but
+  // every deck needs them, so fetch them separately.
+  console.log('\nFetching Basic Energy cards...');
+  const energyUrl = `${API_BASE}?q=supertype:Energy subtypes:Basic&pageSize=${PAGE_SIZE}`;
+  const energyJson = await fetchWithRetry(energyUrl);
+  console.log(`  Found ${energyJson.data.length} Basic Energy cards`);
+  allCards.push(...energyJson.data);
 
   // Dedupe by id (safety net, shouldn't happen but cheap to check)
   const seen = new Set();

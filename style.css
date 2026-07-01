@@ -14,6 +14,8 @@ body {
   background: #0D1B2A;
   color: #F0F4FF;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* =====================
@@ -54,11 +56,9 @@ body {
 }
 
 .logo-img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #FFD600;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
   image-rendering: pixelated;
   flex-shrink: 0;
 }
@@ -104,6 +104,8 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px;
+  width: 100%;
+  flex: 1; /* FIX: pushes footer to bottom of viewport when content is short */
 }
 
 .section {
@@ -220,7 +222,7 @@ body {
 }
 
 .card-item:hover {
-  border-color: #FFD600;
+  border-color: var(--cm-teal, #6b9e93);
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
@@ -398,7 +400,7 @@ body {
   transition: border-color 0.2s;
 }
 
-.deck-card-row:hover { border-color: #FFD600; }
+.deck-card-row:hover { border-color: var(--cm-purple, #5a527a); }
 
 .deck-card-row img {
   width: 40px;
@@ -807,15 +809,12 @@ body {
 
 .header {
   background: #051f28;
-  border-bottom: 2px solid var(--cm-yellow);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--cm-yellow), var(--cm-purple), var(--cm-teal)) 1;
 }
 
 .logo {
   color: var(--cm-yellow);
-}
-
-.logo-img {
-  border-color: var(--cm-yellow);
 }
 
 .nav-btn.active {
@@ -897,8 +896,7 @@ body {
 .footer-avatar-img {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
-  border: 2px solid var(--cm-yellow);
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
@@ -946,4 +944,78 @@ body {
   .footer-content {
     align-items: center;
   }
+}
+
+/* =====================
+   DRAW PROBABILITY PANEL
+===================== */
+.probability-panel {
+  margin-top: 28px;
+}
+
+.prob-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cm-teal);
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+
+.prob-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prob-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 56px;
+  align-items: center;
+  gap: 12px;
+  background: #162233;
+  border: 1px solid #1E3A50;
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.prob-name {
+  font-size: 12px;
+  color: #F0F4FF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prob-qty {
+  color: #7A9BB5;
+  font-size: 11px;
+}
+
+.prob-bar-track {
+  height: 8px;
+  background: #0D1B2A;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.prob-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cm-purple), var(--cm-yellow));
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.prob-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cm-yellow);
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .prob-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .prob-pct { text-align: left; }
 }

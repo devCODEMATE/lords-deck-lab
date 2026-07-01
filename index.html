@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CodeMate Deck Lab</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
@@ -32,10 +32,6 @@
   <h2>Card Search</h2>
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search a card... e.g. Dragapult">
-    <select id="formatFilter">
-      <option value="">All Sets</option>
-      <option value="standard" selected>Standard Only</option>
-    </select>
     <button id="searchBtn">Search</button>
   </div>
   <div id="catalogStatus" style="font-size:11px;color:#7A9BB5;margin-bottom:16px;"></div>
@@ -78,6 +74,7 @@
       <h2>Hand Simulator</h2>
       <button id="drawBtn">Draw Opening Hand (7 cards)</button>
       <div id="handDisplay" class="hand-display"></div>
+      <div id="probabilityPanel" class="probability-panel"></div>
     </section>
 
 <!-- SECTION 4: Damage Calculator -->
@@ -151,6 +148,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

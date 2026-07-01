@@ -32,6 +32,17 @@ function updateCatalogStatus() {
   el.textContent = `📦 ${catalogMeta.totalCards} Standard cards · updated ${date}`;
 }
 
+// FIX: look up a card in the local catalog before ever hitting the live API.
+// Tries exact set+number match first (most reliable), falls back to name-only.
+function findInCatalog(cardName, setCode, cardNumber) {
+  const nameLower = cardName.toLowerCase();
+  const bySetAndNumber = standardCatalog.find(c =>
+    c.set?.ptcgoCode === setCode && c.number === cardNumber
+  );
+  if (bySetAndNumber) return bySetAndNumber;
+  return standardCatalog.find(c => c.name.toLowerCase() === nameLower) || null;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   loadLocalCatalog();
@@ -446,7 +457,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
 
   async function searchCards() {
     const query = searchInput.value.trim();
-    const format = document.getElementById('formatFilter').value;
+    const format = 'standard'; // FIX: app is Standard-only, dropdown removed for clarity
     if (!query) {
       cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">Please enter a card name.</p>';
       return;
@@ -594,7 +605,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       const row = document.createElement('div');
       row.className = 'deck-card-row';
       const imgEl = document.createElement('img');
-      imgEl.style.cssText = 'width:40px;height:56px;border-radius:4px;flex-shrink:0;object-fit:cover;';
+      imgEl.style.cssText = 'width:40px;height:56px;border-radius:4px;flex-shrink:0;object-fit:cover;cursor:zoom-in;';
       imgEl.alt = card.name;
       if (card.images?.small) {
         imgEl.src = card.images.small;
@@ -602,6 +613,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       } else {
         imgEl.src = sketchToDataURI(card, 40, 56);
       }
+      imgEl.addEventListener('click', () => openCardModal(card)); // FIX: zoom now works in Deck Builder too
       row.appendChild(imgEl);
       row.innerHTML += `
         <div class="deck-card-name">${card.name}</div>
@@ -628,6 +640,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     document.getElementById('energyCount').textContent = energy;
     const countEl = document.getElementById('cardCount');
     countEl.style.color = total === 60 ? '#6b9e93' : total > 60 ? '#E63946' : '#ffd166';
+    renderProbabilityPanel();
   }
 
   // =====================
@@ -704,6 +717,20 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       const cardName = cleanCardName(match[2].trim());
       const setCode = match[3];
       const cardNumber = match[4];
+
+      // FIX: check the local Standard catalog first — instant, no network,
+      // and immune to the pokemontcg.io intermittent failures we diagnosed.
+      const localMatch = findInCatalog(cardName, setCode, cardNumber);
+      if (localMatch) {
+        const existing = deck.find(c => c.id === localMatch.id);
+        if (existing) existing.quantity += quantity;
+        else deck.push({ ...localMatch, quantity });
+        imported += quantity; withImage += quantity;
+        continue;
+      }
+
+      // Fallback: live API — only reached for cards not in the Standard catalog
+      // (e.g. Basic Energy without a regulation mark, or Expanded-only cards)
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -738,6 +765,58 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     importBtn.disabled = false;
     const total = deck.reduce((sum, c) => sum + c.quantity, 0);
     alert(`✅ Import complete!\n\n📦 ${total}/60 cards loaded\n🖼️ ${withImage} with real image\n✏️ ${withSketch} with sketch`);
+  }
+
+  // =====================
+  // DRAW PROBABILITY (hypergeometric distribution)
+  // =====================
+  function combination(n, r) {
+    if (r < 0 || r > n) return 0;
+    r = Math.min(r, n - r);
+    let result = 1;
+    for (let i = 0; i < r; i++) result = (result * (n - i)) / (i + 1);
+    return result;
+  }
+
+  // P(drawing at least one copy of a card in the opening hand)
+  function probabilityAtLeastOne(deckSize, successCount, drawSize) {
+    if (successCount <= 0 || deckSize <= 0) return 0;
+    if (drawSize > deckSize) drawSize = deckSize;
+    const failCount = deckSize - successCount;
+    const probNone = combination(failCount, drawSize) / combination(deckSize, drawSize);
+    return 1 - probNone;
+  }
+
+  function renderProbabilityPanel() {
+    const panel = document.getElementById('probabilityPanel');
+    if (!panel) return;
+    const deckSize = deck.reduce((sum, c) => sum + c.quantity, 0);
+    if (deckSize < 7) {
+      panel.innerHTML = '';
+      return;
+    }
+    const rows = deck
+      .map(card => ({
+        name: card.name,
+        quantity: card.quantity,
+        prob: probabilityAtLeastOne(deckSize, card.quantity, 7),
+      }))
+      .sort((a, b) => b.prob - a.prob);
+
+    panel.innerHTML = `
+      <h3 class="prob-title">📊 Draw Probability — chance of at least 1 copy in your opening 7</h3>
+      <div class="prob-list">
+        ${rows.map(r => `
+          <div class="prob-row">
+            <span class="prob-name">${r.name} <span class="prob-qty">×${r.quantity}</span></span>
+            <div class="prob-bar-track">
+              <div class="prob-bar-fill" style="width:${(r.prob * 100).toFixed(1)}%"></div>
+            </div>
+            <span class="prob-pct">${(r.prob * 100).toFixed(1)}%</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
   }
 
   // =====================
