@@ -729,16 +729,27 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     let imported = 0, withImage = 0, withSketch = 0;
 
     for (const line of cardLines) {
-      const match = line.match(/^(\d+)\s+(.+?)\s+([A-Z]{2,4})\s+(\d+[a-z]?)$/);
+      const match = line.match(/^(\d+)\s+(.+?)\s+([A-Z]{2,6})\s+(\d+[a-z]?)$/);
       if (!match) {
         const simple = line.match(/^(\d+)\s+(.+)$/);
         if (simple) {
           const quantity = parseInt(simple[1]);
-          const name = cleanCardName(simple[2]);
-          const st = guessType(name);
+          // The line may still end in "<CODE> <NUMBER>" even if the strict regex
+          // didn't match (e.g. a 5+ letter set code) — strip it before searching.
+          const trailingCodeMatch = simple[2].match(/^(.+?)\s+[A-Z]{2,8}\s+\d+[a-z]?$/);
+          const name = cleanCardName(trailingCodeMatch ? trailingCodeMatch[1] : simple[2]);
           if (name) {
-            deck.push({ id: `sketch-${name}-${Date.now()}`, name, supertype: st, subtypes: [guessSubtype(name, st)], quantity, images: { small: '' } });
-            imported += quantity; withSketch += quantity;
+            const localMatch = findInCatalog(name, '', '');
+            if (localMatch) {
+              const existing = deck.find(c => c.id === localMatch.id);
+              if (existing) existing.quantity += quantity;
+              else deck.push({ ...localMatch, quantity });
+              imported += quantity; withImage += quantity;
+            } else {
+              const st = guessType(name);
+              deck.push({ id: `sketch-${name}-${Date.now()}`, name, supertype: st, subtypes: [guessSubtype(name, st)], quantity, images: { small: '' } });
+              imported += quantity; withSketch += quantity;
+            }
           }
         }
         continue;
@@ -760,7 +771,9 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       }
 
       // Fallback: live API — only reached for cards not in the Standard catalog
-      // (e.g. Basic Energy without a regulation mark, or Expanded-only cards)
+      // (e.g. Basic Energy without a regulation mark, promo cards not yet indexed
+      // locally, or Expanded-only cards). We only ever match on the EXACT card
+      // name — a wrong Pokémon's art is worse than no art for deck-building.
       let foundLive = false;
       try {
         const controller = new AbortController();
@@ -784,7 +797,6 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       } catch (e) { /* falls through to TCGdex below */ }
 
       if (!foundLive) {
-        // Third tier: pokemontcg.io didn't have it — try TCGdex before giving up
         const tcgdexMatch = await fetchFromTCGdex(cardName);
         if (tcgdexMatch) {
           const existing = deck.find(c => c.id === tcgdexMatch.id);
@@ -925,7 +937,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     statsEl.innerHTML = `
       <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#6b9e93">${basics}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Basic Pokémon</div></div>
       <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#ffd166">${trainers}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Trainers</div></div>
-      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#E63946">${energies}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Energies</div></div>
+      <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#6b9e93">${energies}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Energies</div></div>
       <div style="background:#0a2a36;border:1px solid #1E3A50;border-radius:8px;padding:12px 20px;text-align:center;min-width:80px"><div style="font-size:22px;font-weight:700;color:#ffd166">${hasBasic ? '✓ Ready' : '✗ Mulligan'}</div><div style="font-size:11px;color:#7A9BB5;text-transform:uppercase;letter-spacing:1px">Hand Status</div></div>
     `;
     handDisplay.appendChild(statsEl);
