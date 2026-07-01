@@ -1,10 +1,40 @@
 // =====================
 // API KEY
 // =====================
-// CodeMate Deck Lab v5 - 2026
+// CodeMate Deck Lab v6 - 2026
 const API_KEY = '9990c70a-8afb-4e89-979a-d6b10faee93f';
 
+// =====================
+// LOCAL CATALOG (Fase 0 — cached Standard cards)
+// =====================
+const CATALOG_URL = 'data/standard-cards.json';
+let standardCatalog = [];
+let catalogMeta = { lastUpdated: null, totalCards: 0 };
+
+async function loadLocalCatalog() {
+  try {
+    const res = await fetch(CATALOG_URL);
+    if (!res.ok) throw new Error('Catalog not found');
+    const json = await res.json();
+    standardCatalog = json.cards || [];
+    catalogMeta = { lastUpdated: json.lastUpdated, totalCards: json.totalCards };
+    console.log(`Loaded local catalog: ${catalogMeta.totalCards} cards (updated ${catalogMeta.lastUpdated})`);
+    updateCatalogStatus();
+  } catch (e) {
+    console.warn('Local catalog not available yet, falling back to live API for Standard searches:', e.message);
+  }
+}
+
+function updateCatalogStatus() {
+  const el = document.getElementById('catalogStatus');
+  if (!el || !catalogMeta.lastUpdated) return;
+  const date = new Date(catalogMeta.lastUpdated).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  el.textContent = `📦 ${catalogMeta.totalCards} Standard cards · updated ${date}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
+  loadLocalCatalog();
 
   // =====================
   // NAVIGATION
@@ -421,6 +451,21 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">Please enter a card name.</p>';
       return;
     }
+
+    // FIX-10/11: Standard search reads from the local cached catalog — instant, no API call
+    if (format === 'standard' && standardCatalog.length > 0) {
+      const q = query.toLowerCase();
+      const cards = standardCatalog.filter(card => card.name.toLowerCase().includes(q));
+      if (cards.length === 0) {
+        cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">No Standard legal cards found. Try "All Sets".</p>';
+        return;
+      }
+      renderCards(cards);
+      return;
+    }
+
+    // FIX-12: fallback to live API — used for "All Sets" or if the local catalog
+    // hasn't been generated yet (first run before GitHub Actions has committed it)
     cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">Searching cards...</p>';
     try {
       const url = `https://api.pokemontcg.io/v2/cards?q=name:${query}*&pageSize=60&orderBy=-set.releaseDate`;
@@ -431,7 +476,6 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
         cardGrid.innerHTML = '<p style="color:#7A9BB5;padding:16px">No cards found. Try another name.</p>';
         return;
       }
-      // ✅ FIX: filter by regulation mark H/I/J for 2026 Standard format
       if (format === 'standard') {
         cards = cards.filter(card => ['H','I','J'].includes(card.regulationMark));
         if (cards.length === 0) {
