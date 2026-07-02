@@ -16,7 +16,7 @@ const REGULATION_MARKS = ['H', 'I', 'J'];
 const PAGE_SIZE = 250;
 const MAX_RETRIES = 5;
 const OUTPUT_PATH = path.join(__dirname, '..', 'data', 'standard-cards.json');
-const MIN_EXPECTED_CARDS = 2000; // sanity floor based on H+I+J+Energy totals seen (~2827+)
+const MIN_EXPECTED_CARDS = 2900; // sanity floor based on H+I+J+Energy+SVP totals seen (~3010+)
 
 const apiKey = process.env.POKEMONTCG_API_KEY || '';
 
@@ -49,14 +49,15 @@ async function fetchWithRetry(url, retries = MAX_RETRIES) {
   throw new Error(`Failed to fetch after ${retries} attempts: ${url}`);
 }
 
-async function fetchRegulationMark(mark) {
-  console.log(`\nFetching regulationMark:${mark}...`);
+// Generic paginated fetch for any pokemontcg.io `q=` query
+async function fetchByQuery(query, label) {
+  console.log(`\nFetching ${label} (${query})...`);
   const cards = [];
   let page = 1;
   let totalCount = null;
 
   while (true) {
-    const url = `${API_BASE}?q=regulationMark:${mark}&pageSize=${PAGE_SIZE}&page=${page}`;
+    const url = `${API_BASE}?q=${encodeURIComponent(query)}&pageSize=${PAGE_SIZE}&page=${page}`;
     const json = await fetchWithRetry(url);
 
     cards.push(...json.data);
@@ -70,6 +71,19 @@ async function fetchRegulationMark(mark) {
 
   return cards;
 }
+
+async function fetchRegulationMark(mark) {
+  return fetchByQuery(`regulationMark:${mark}`, `regulationMark:${mark}`);
+}
+
+// Supplemental queries: cards that the H/I/J regulationMark filter alone can miss,
+// either because the field is empty (Basic Energy) or unreliable on that specific
+// print (promo cards often have inconsistent regulationMark data). Fetching by
+// set.id guarantees full coverage of that set regardless of the field's quality.
+const SUPPLEMENTAL_QUERIES = [
+  { label: 'Basic Energy', query: 'supertype:Energy subtypes:Basic' },
+  { label: 'Scarlet & Violet Promos (SVP)', query: 'set.id:svp' },
+];
 
 function normalizeCard(card) {
   return {
@@ -110,14 +124,11 @@ async function main() {
     allCards.push(...cards);
   }
 
-  // Basic Energy cards often have no regulationMark at all (they're evergreen
-  // across formats), so the H/I/J filter above misses them entirely — but
-  // every deck needs them, so fetch them separately.
-  console.log('\nFetching Basic Energy cards...');
-  const energyUrl = `${API_BASE}?q=supertype:Energy subtypes:Basic&pageSize=${PAGE_SIZE}`;
-  const energyJson = await fetchWithRetry(energyUrl);
-  console.log(`  Found ${energyJson.data.length} Basic Energy cards`);
-  allCards.push(...energyJson.data);
+  // Fetch supplemental sets/categories the H/I/J filter alone can miss
+  for (const { label, query } of SUPPLEMENTAL_QUERIES) {
+    const cards = await fetchByQuery(query, label);
+    allCards.push(...cards);
+  }
 
   // Dedupe by id (safety net, shouldn't happen but cheap to check)
   const seen = new Set();
