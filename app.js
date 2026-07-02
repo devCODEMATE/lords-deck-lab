@@ -447,6 +447,27 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
   // TCGdex FALLBACK (third tier, for cards pokemontcg.io hasn't indexed yet —
   // typically very recent promos)
   // =====================
+  async function resolveLive(cardName, setCode, cardNumber) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(
+        `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(cardName)}*&pageSize=10`,
+        { headers: { 'X-Api-Key': API_KEY }, signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      if (data.data && data.data.length > 0) {
+        const exact = data.data.find(c => c.set?.ptcgoCode === setCode && c.number === cardNumber);
+        const setM = data.data.find(c => c.set?.ptcgoCode === setCode);
+        return exact || setM || data.data[0];
+      }
+    } catch (e) {
+      console.warn(`pokemontcg.io: fetch threw for "${cardName}" — ${e.name}: ${e.message}`);
+    }
+    return await fetchFromTCGdex(cardName);
+  }
+
   async function fetchFromTCGdex(cardName) {
     const url = `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(cardName)}`;
     try {
@@ -735,21 +756,24 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
     let imported = 0, withImage = 0, withSketch = 0;
 
     for (const line of cardLines) {
-      const match = line.match(/^(\d+)\s+(.+?)\s+([A-Z]{2,6})\s+(\d+[a-z]?)$/);
+      const match = line.match(/^(\d+)\s+(.+?)\s+([A-Z0-9]{2,6}(?:-[A-Z0-9]{2,6})?)\s+(\d+[a-z]?)$/);
       if (!match) {
         const simple = line.match(/^(\d+)\s+(.+)$/);
         if (simple) {
           const quantity = parseInt(simple[1]);
           // The line may still end in "<CODE> <NUMBER>" even if the strict regex
-          // didn't match (e.g. a 5+ letter set code) — strip it before searching.
-          const trailingCodeMatch = simple[2].match(/^(.+?)\s+[A-Z]{2,8}\s+\d+[a-z]?$/);
+          // didn't match — strip it before searching (hyphen-aware, e.g. "PR-SV").
+          const trailingCodeMatch = simple[2].match(/^(.+?)\s+([A-Z0-9]{2,6}(?:-[A-Z0-9]{2,6})?)\s+(\d+[a-z]?)$/);
           const name = cleanCardName(trailingCodeMatch ? trailingCodeMatch[1] : simple[2]);
+          const setCode = trailingCodeMatch ? trailingCodeMatch[2] : '';
+          const cardNumber = trailingCodeMatch ? trailingCodeMatch[3] : '';
           if (name) {
-            const localMatch = findInCatalog(name, '', '');
-            if (localMatch) {
-              const existing = deck.find(c => c.id === localMatch.id);
+            const localMatch = findInCatalog(name, setCode, cardNumber);
+            const resolvedCard = localMatch || await resolveLive(name, setCode, cardNumber);
+            if (resolvedCard) {
+              const existing = deck.find(c => c.id === resolvedCard.id);
               if (existing) existing.quantity += quantity;
-              else deck.push({ ...localMatch, quantity });
+              else deck.push({ ...resolvedCard, quantity });
               imported += quantity; withImage += quantity;
             } else {
               const st = guessType(name);
@@ -780,40 +804,16 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
       // (e.g. Basic Energy without a regulation mark, promo cards not yet indexed
       // locally, or Expanded-only cards). We only ever match on the EXACT card
       // name — a wrong Pokémon's art is worse than no art for deck-building.
-      let foundLive = false;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const response = await fetch(
-          `https://api.pokemontcg.io/v2/cards?q=name:${cardName}*&pageSize=10`,
-          { headers: { 'X-Api-Key': API_KEY }, signal: controller.signal }
-        );
-        clearTimeout(timeoutId);
-        const data = await response.json();
-        if (data.data && data.data.length > 0) {
-          const exact = data.data.find(c => c.set?.ptcgoCode === setCode && c.number === cardNumber);
-          const setM = data.data.find(c => c.set?.ptcgoCode === setCode);
-          const best = exact || setM || data.data[0];
-          const existing = deck.find(c => c.id === best.id);
-          if (existing) existing.quantity += quantity;
-          else deck.push({ ...best, quantity });
-          imported += quantity; withImage += quantity;
-          foundLive = true;
-        }
-      } catch (e) { console.warn(`pokemontcg.io: fetch threw for "${cardName}" — ${e.name}: ${e.message}`); }
-
-      if (!foundLive) {
-        const tcgdexMatch = await fetchFromTCGdex(cardName);
-        if (tcgdexMatch) {
-          const existing = deck.find(c => c.id === tcgdexMatch.id);
-          if (existing) existing.quantity += quantity;
-          else deck.push({ ...tcgdexMatch, quantity });
-          imported += quantity; withImage += quantity;
-        } else {
-          const st = guessType(cardName);
-          deck.push({ id: `sketch-${cardName}-${setCode}-${cardNumber}-${Date.now()}`, name: cardName, supertype: st, subtypes: [guessSubtype(cardName, st)], set: { ptcgoCode: setCode }, number: cardNumber, quantity, images: { small: '' } });
-          imported += quantity; withSketch += quantity;
-        }
+      const resolvedCard = await resolveLive(cardName, setCode, cardNumber);
+      if (resolvedCard) {
+        const existing = deck.find(c => c.id === resolvedCard.id);
+        if (existing) existing.quantity += quantity;
+        else deck.push({ ...resolvedCard, quantity });
+        imported += quantity; withImage += quantity;
+      } else {
+        const st = guessType(cardName);
+        deck.push({ id: `sketch-${cardName}-${setCode}-${cardNumber}-${Date.now()}`, name: cardName, supertype: st, subtypes: [guessSubtype(cardName, st)], set: { ptcgoCode: setCode }, number: cardNumber, quantity, images: { small: '' } });
+        imported += quantity; withSketch += quantity;
       }
     }
     renderDeck();
