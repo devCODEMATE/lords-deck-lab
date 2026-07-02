@@ -448,18 +448,23 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
   // typically very recent promos)
   // =====================
   async function fetchFromTCGdex(cardName) {
+    const url = `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(cardName)}`;
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(
-        `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(cardName)}`,
-        { signal: controller.signal }
-      );
+      const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        console.warn(`TCGdex: HTTP ${res.status} for "${cardName}" — ${url}`);
+        return null;
+      }
       const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) return null;
+      if (!Array.isArray(data) || data.length === 0) {
+        console.warn(`TCGdex: no results for "${cardName}" — ${url}`);
+        return null;
+      }
       const match = data.find(c => c.name.toLowerCase() === cardName.toLowerCase()) || data[0];
+      console.log(`TCGdex: found "${match.name}" for "${cardName}"`);
       const st = guessType(match.name);
       return {
         id: `tcgdex-${match.id}`,
@@ -469,6 +474,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
         images: { small: `${match.image}/low.webp`, large: `${match.image}/high.webp` },
       };
     } catch (e) {
+      console.error(`TCGdex: fetch threw for "${cardName}" — ${e.name}: ${e.message} — ${url}`);
       return null;
     }
   }
@@ -794,7 +800,7 @@ ${W > 60 ? `<text x="9" y="${H-22}" font-family="Caveat,cursive" font-size="9" f
           imported += quantity; withImage += quantity;
           foundLive = true;
         }
-      } catch (e) { /* falls through to TCGdex below */ }
+      } catch (e) { console.warn(`pokemontcg.io: fetch threw for "${cardName}" — ${e.name}: ${e.message}`); }
 
       if (!foundLive) {
         const tcgdexMatch = await fetchFromTCGdex(cardName);
